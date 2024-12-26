@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { Class } from '../models/class';
 import { User } from '../models/user';
 import { Booking } from '../models/booking';
@@ -24,11 +24,30 @@ export const createClass = async (req: Request, res: Response) => {
     }
 };
 
-export const getClasses = async (req: Request, res: Response, next: unknown) => {
+export const getClasses = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const classes = await Class.find({ date: { $gte: new Date() } });
-        res.json(classes);
+        const filter = req.query.type;
+        let query = {};
+
+        if (filter === 'all') {
+            query = {};
+        } else if (filter === 'intro') {
+            query = { type: 'intro' };
+        } else if (filter === 'advanced') {
+            query = { type: 'advanced' };
+        } else {
+            query = { date: { $gte: new Date() } }; // Upcoming classes
+        }
+
+        const classes = await Class.find(query);
+        const totalClasses = classes.length;
+
+        return res.json({
+            classes,
+            totalClasses,
+        });
     } catch (error) {
+        console.error('Error fetching classes:', error);
         res.status(500).json({ message: 'Server Error' });
     }
 };
