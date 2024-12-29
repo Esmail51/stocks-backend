@@ -36,7 +36,7 @@ export const getClasses = async (req: Request, res: Response, next: NextFunction
         } else if (filter === 'advanced') {
             query = { type: 'advanced' };
         } else {
-            query = { date: { $gte: new Date() } }; // Upcoming classes
+            query = { date: { $gte: new Date() } };
         }
 
         const classes = await Class.find(query);
@@ -52,7 +52,7 @@ export const getClasses = async (req: Request, res: Response, next: NextFunction
     }
 };
 export const createBooking = async (req: Request, res: Response) => {
-    const { name, email, phone, classId } = req.body;
+    const { name, email, classId } = req.body;
 
     try {
         // Check class availability
@@ -64,7 +64,7 @@ export const createBooking = async (req: Request, res: Response) => {
         // Create or fetch the user
         let user = await User.findOne({ email });
         if (!user) {
-            user = new User({ name, email, phone });
+            user = new User({ name, email});
             await user.save();
         }
 
