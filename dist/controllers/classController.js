@@ -35,16 +35,35 @@ const createClass = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 exports.createClass = createClass;
 const getClasses = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const classes = yield class_1.Class.find({ date: { $gte: new Date() } });
-        res.json(classes);
+        const filter = req.query.type;
+        let query = {};
+        if (filter === 'all') {
+            query = {};
+        }
+        else if (filter === 'intro') {
+            query = { type: 'intro' };
+        }
+        else if (filter === 'advanced') {
+            query = { type: 'advanced' };
+        }
+        else {
+            query = { date: { $gte: new Date() } };
+        }
+        const classes = yield class_1.Class.find(query);
+        const totalClasses = classes.length;
+        return res.json({
+            classes,
+            totalClasses,
+        });
     }
     catch (error) {
+        console.error('Error fetching classes:', error);
         res.status(500).json({ message: 'Server Error' });
     }
 });
 exports.getClasses = getClasses;
 const createBooking = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, email, phone, classId } = req.body;
+    const { name, email, classId } = req.body;
     try {
         // Check class availability
         const selectedClass = yield class_1.Class.findById(classId);
@@ -54,7 +73,7 @@ const createBooking = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         // Create or fetch the user
         let user = yield user_1.User.findOne({ email });
         if (!user) {
-            user = new user_1.User({ name, email, phone });
+            user = new user_1.User({ name, email });
             yield user.save();
         }
         // Create booking
