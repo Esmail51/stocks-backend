@@ -13,6 +13,7 @@ exports.getBookingsByEmail = exports.createBooking = exports.getClasses = export
 const class_1 = require("../models/class");
 const user_1 = require("../models/user");
 const booking_1 = require("../models/booking");
+const emailController_1 = require("./emailController");
 const createClass = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseName, date, startTime, endTime, maxSeats, type } = req.body;
     try {
@@ -81,7 +82,30 @@ const createBooking = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         yield booking.save();
         // Update seat availability
         selectedClass.availableSeats -= 1;
-        yield selectedClass.save();
+        const response = yield selectedClass.save();
+        if (response) {
+            const courseDetails = {
+                name: selectedClass.courseName,
+                price: '$399'
+            };
+            const paymentDetails = {
+                amount: 39900,
+                payment_method: 'Credit Card',
+                status: 'Paid',
+                billing_details: {
+                    name: user.name,
+                    email: user.email
+                }
+            };
+            const response = yield (0, emailController_1.sendEmail)(paymentDetails, courseDetails);
+            if (response) {
+                console.log(response);
+                console.log('Email sent successfully');
+            }
+            else {
+                console.error('Error sending email');
+            }
+        }
         res.json({ success: true, message: 'Booking confirmed!', bookingId: booking._id });
     }
     catch (error) {
