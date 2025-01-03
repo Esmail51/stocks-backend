@@ -11,7 +11,9 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://stocks-academy.vercel.app/']
+  origin: ['http://localhost:3000', 'https://stocks-academy.vercel.app/'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 
