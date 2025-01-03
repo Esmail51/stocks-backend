@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { Class } from '../models/class';
 import { User } from '../models/user';
 import { Booking } from '../models/booking';
+import { sendEmail } from './emailController';
 
 export const createClass = async (req: Request, res: Response) => {
     const { courseName, date, startTime, endTime, maxSeats, type } = req.body;
@@ -74,7 +75,30 @@ export const createBooking = async (req: Request, res: Response) => {
 
         // Update seat availability
         selectedClass.availableSeats -= 1;
-        await selectedClass.save();
+        const response = await selectedClass.save();
+        if( response ) {
+            const courseDetails = {
+                name: selectedClass.courseName,
+                price: '$399'
+            };
+            const paymentDetails = {
+                amount: 39900,
+                payment_method: 'Credit Card',
+                status: 'Paid',
+                billing_details: {
+                    name: user.name,
+                    email: user.email
+                }
+            };
+            const response = await sendEmail(paymentDetails, courseDetails);
+            if (response) {
+                console.log(response);
+                console.log('Email sent successfully');
+            } else {
+                console.error('Error sending email');
+            }
+
+        }
 
         res.json({ success: true, message: 'Booking confirmed!', bookingId: booking._id });
     } catch (error) {
